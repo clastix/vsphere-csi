@@ -19,4 +19,4 @@ jobs:
           version: v3.3.4
 
       - name: Linting Chart
-        run: helm lint ./charts/vsphere-csi
+        run: helm lint ./charts/vsphere-csi --set enableMockCRD=true
