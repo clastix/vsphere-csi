@@ -1,0 +1,30 @@
+name: vsphere-csi
+version: 0.1.0
+appVersion: 3.4.0
+description: vSphere Container Storage Interface (CSI) for Kamaji Tenant Clusters
+icon: https://charts.rancher.io/assets/logos/vsphere-csi.svg
+type: application
+apiVersion: v2
+maintainers:
+  - name: Clastix Labs
+    email: authors@clastix.labs
+keywords:
+  - kubernetes
+  - helm
+  - cluster-api
+  - kamaji
+  - csi
+  - vsphere
+home: https://github.com/clastix/vsphere-csi
+sources:
+  - https://github.com/clastix/vsphere-csi
+  - https://github.com/kubernetes-sigs/vsphere-csi-driver
+annotations:
+  artifacthub.io/links: |
+    - name: Clastix Labs
+      url: https://github.com/clastix
+  artifacthub.io/operator: "true"
+  artifacthub.io/operatorCapabilities: "Full Lifecycle"
+  artifacthub.io/changes: |
+    - kind: commit
+      description: Initial commit.

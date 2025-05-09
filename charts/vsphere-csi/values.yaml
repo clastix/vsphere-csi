@@ -1,0 +1,129 @@
+
+# -- The name of an existing Secret for vSphere.
+secret: csi-config-secret
+
+cluster:
+  # -- Name of the Tenant Cluster
+  name: roma
+  # -- Target namespace in the Tenant Cluster where the CSI driver will be installed
+  targetNamespace: vmware-system-csi
+
+
+controller:
+  image:
+    # -- CSI Controller image
+    repository: registry.k8s.io/csi-vsphere/driver 
+    # -- CSI Controller image tag
+    tag: v3.4.0
+    # -- CSI Controller image pull policy
+    imagePullPolicy: IfNotPresent
+  # -- CSI Controller resources
+  resources: {}
+  csiAttacher:
+    # -- CSI Attacher image
+    repository: registry.k8s.io/sig-storage/csi-attacher
+    # -- CSI Attacher image tag
+    tag: v4.8.1
+    # -- CSI Attacher image pull policy
+    imagePullPolicy: IfNotPresent
+    # -- CSI Attacher resources
+    resources: {}
+  csiResizer:
+    # -- CSI Resizer image
+    repository: registry.k8s.io/sig-storage/csi-resizer
+    # -- CSI Resizer image tag
+    tag: v1.13.2
+    # -- CSI Resizer image pull policy
+    imagePullPolicy: IfNotPresent
+    # -- CSI Resizer resources
+    resources: {}
+  livenessProbe:
+    # -- CSI liveness probe image
+    repository: registry.k8s.io/sig-storage/livenessprobe
+    # -- CSI liveness probe image tag
+    tag: v2.15.0
+    # -- CSI liveness probe image pull policy
+    imagePullPolicy: IfNotPresent
+    # -- CSI liveness probe resources
+    resources: {}
+  vsphereSyncer:
+    # -- CSI Syncer image
+    repository: registry.k8s.io/csi-vsphere/syncer #us-central1-docker.pkg.dev/k8s-staging-images/csi-vsphere/syncer
+    # -- CSI Syncer image tag
+    tag: v3.4.0
+    # -- CSI Syncer image pull policy
+    imagePullPolicy: IfNotPresent
+    # -- CSI Syncer resources
+    resources: {}
+  csiProvisioner:
+    # -- CSI Provisioner image
+    repository: registry.k8s.io/sig-storage/csi-provisioner
+    # -- CSI Provisioner image tag
+    tag: v4.0.1
+    # -- CSI Provisioner image pull policy
+    imagePullPolicy: IfNotPresent
+    # -- CSI Provisioner resources
+    resources: {}
+  csiSnapshotter:
+    # -- CSI Snapshotter image
+    repository: registry.k8s.io/sig-storage/csi-snapshotter
+    # -- CSI Snapshotter image tag
+    tag: v8.2.1
+    # -- CSI Snapshotter image pull policy
+    imagePullPolicy: IfNotPresent
+    # -- CSI Snapshotter resources
+    resources: {}
+  topology:
+    # -- Enable topology feature
+    enabled: false
+  # -- CSI Controller Node Selector
+  nodeSelector: {}
+  # -- CSI Controller Tolerations
+  tolerations: []
+
+driver:
+  image:
+    # -- CSI driver image
+    repository: registry.k8s.io/csi-vsphere/driver
+    # -- CSI driver image tag
+    tag: v3.4.0
+    # -- CSI driver image pull policy
+    imagePullPolicy: Always
+  # -- CSI driver resources
+  resources: {}
+  registrar:
+    # -- CSI driver registrar image
+    repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
+    # -- CSI driver registrar image tag
+    tag: v2.13.0
+    # -- CSI driver registrar image pull policy
+    imagePullPolicy: IfNotPresent
+    # -- CSI driver registrar resources
+    resources: {}
+  livenessProbe:
+    # -- CSI driver liveness probe image
+    repository: registry.k8s.io/sig-storage/livenessprobe
+    # -- CSI driver liveness probe image tag
+    tag: v2.15.0
+    # -- CSI driver liveness probe image pull policy
+    imagePullPolicy: IfNotPresent
+    # -- CSI driver liveness probe resources
+    resources: {} 
+
+storageClass:
+  # -- StorageClass enablement
+  enabled: true
+  # -- Name of the storage class
+  name: vsphere-csi
+  # -- Configure as the default storage class
+  default: true
+  # -- Allow volume expansion
+  allowVolumeExpansion: true
+  # -- Reclaim policy
+  reclaimPolicy: Delete
+  # -- Volume binding mode
+  volumeBindingMode: WaitForFirstConsumer
+  # -- Optional storage class parameters
+  parameters: {}
+  #  storagepolicyname: DATASTORE_POLICY_NAME
+

@@ -1,0 +1,301 @@
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  labels:
+    component: csi-controller-manager
+    cluster.x-k8s.io/cluster-name: {{ include "cluster-name" . | quote }}
+  name: {{ include "cluster-name" . }}-csi.vsphere.vmware.com
+spec:
+  attachRequired: true
+  podInfoOnMount: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    component: csi-controller-manager
+    cluster.x-k8s.io/cluster-name: {{ include "cluster-name" . | quote }}
+  name: {{ include "cluster-name" . }}-vsphere-csi-controller
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: csi-controller-manager
+    cluster.x-k8s.io/cluster-name: {{ include "cluster-name" . | quote }}
+  name: {{ include "cluster-name" . }}-vsphere-csi-controller
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ include "cluster-name" . }}-vsphere-csi-controller
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        component: csi-controller-manager
+        app: {{ include "cluster-name" . }}-vsphere-csi-controller
+        role: vsphere-csi
+    spec:
+      containers:
+      - name: vsphere-csi-controller
+        image: {{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}
+        imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+        {{- with .Values.controller.resources }}
+        resources:
+           {{- toYaml . | nindent 10 }}
+        {{- end }}
+        args:
+        - --kubeconfig=/kubeconfig/config/admin.svc
+        - --fss-name=internal-feature-states.csi.vsphere.vmware.com
+        - --fss-namespace=$(CSI_NAMESPACE)
+        env:
+        - name: CSI_ENDPOINT
+          value: unix:///csi/csi.sock
+        - name: X_CSI_MODE
+          value: controller
+        - name: X_CSI_SPEC_DISABLE_LEN_CHECK
+          value: "true"
+        - name: X_CSI_SERIAL_VOL_ACCESS_TIMEOUT
+          value: 3m
+        - name: VSPHERE_CSI_CONFIG
+          value: /etc/cloud/csi-vsphere.conf
+        - name: LOGGER_LEVEL
+          value: PRODUCTION
+        - name: INCLUSTER_CLIENT_QPS
+          value: "100"
+        - name: INCLUSTER_CLIENT_BURST
+          value: "100"
+        - name: CSI_NAMESPACE
+          value: {{ .Values.cluster.targetNamespace }}
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: healthz
+          initialDelaySeconds: 30
+          periodSeconds: 180
+          timeoutSeconds: 10
+        ports:
+        - containerPort: 9808
+          name: healthz
+          protocol: TCP
+        - containerPort: 2112
+          name: prometheus
+          protocol: TCP
+        securityContext:
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
+        volumeMounts:
+        - mountPath: /etc/cloud
+          name: vsphere-config-volume
+          readOnly: true
+        - mountPath: /csi
+          name: socket-dir
+        - mountPath: /kubeconfig/config/admin.svc
+          name: kubeconfig
+          readOnly: true
+          subPath: admin.svc
+      - name: csi-attacher
+        image: {{ .Values.controller.csiAttacher.repository }}:{{ .Values.controller.csiAttacher.tag }}
+        imagePullPolicy: {{ .Values.controller.csiAttacher.imagePullPolicy }}
+        {{- with .Values.controller.csiAttacher.resources }}
+        resources:
+           {{- toYaml . | nindent 10 }}
+        {{- end }}
+        args:
+        - --kubeconfig=/kubeconfig/config/admin.svc
+        - --timeout=300s
+        - --csi-address=$(ADDRESS)
+        - --leader-election
+        - --leader-election-namespace=$(CSI_NAMESPACE)
+        - --leader-election-lease-duration=120s
+        - --leader-election-renew-deadline=60s
+        - --leader-election-retry-period=30s
+        - --kube-api-qps=100
+        - --kube-api-burst=100
+        - --worker-threads=100
+        env:
+        - name: ADDRESS
+          value: /csi/csi.sock
+        - name: CSI_NAMESPACE
+          value: {{ .Values.cluster.targetNamespace }}
+        volumeMounts:
+        - mountPath: /csi
+          name: socket-dir
+        - mountPath: /kubeconfig/config/admin.svc
+          name: kubeconfig
+          readOnly: true
+          subPath: admin.svc
+      - name: csi-resizer
+        image: {{ .Values.controller.csiResizer.repository }}:{{ .Values.controller.csiResizer.tag }}
+        imagePullPolicy: {{ .Values.controller.csiResizer.imagePullPolicy }}
+        {{- with .Values.controller.csiResizer.resources }}
+        resources:
+           {{- toYaml . | nindent 10 }}
+        {{- end }}
+        args:
+        - --kubeconfig=/kubeconfig/config/admin.svc
+        - --timeout=300s
+        - --handle-volume-inuse-error=false
+        - --csi-address=$(ADDRESS)
+        - --kube-api-qps=100
+        - --kube-api-burst=100
+        - --leader-election
+        - --leader-election-namespace=$(CSI_NAMESPACE)
+        - --leader-election-lease-duration=120s
+        - --leader-election-renew-deadline=60s
+        - --leader-election-retry-period=30s
+        env:
+        - name: ADDRESS
+          value: /csi/csi.sock
+        - name: CSI_NAMESPACE
+          value: {{ .Values.cluster.targetNamespace }}
+        volumeMounts:
+        - mountPath: /csi
+          name: socket-dir
+        - mountPath: /kubeconfig/config/admin.svc
+          name: kubeconfig
+          readOnly: true
+          subPath: admin.svc
+      - name: liveness-probe
+        image: {{ .Values.controller.livenessProbe.repository }}:{{ .Values.controller.livenessProbe.tag }}
+        imagePullPolicy: {{ .Values.controller.livenessProbe.imagePullPolicy }}
+        {{- with .Values.controller.livenessProbe.resources }}
+        resources:
+           {{- toYaml . | nindent 10 }}
+        {{- end }}
+        args:
+        - --csi-address=/csi/csi.sock
+        volumeMounts:
+        - mountPath: /csi
+          name: socket-dir
+      - name: vsphere-syncer
+        image: {{ .Values.controller.vsphereSyncer.repository }}:{{ .Values.controller.vsphereSyncer.tag }}
+        imagePullPolicy: {{ .Values.controller.vsphereSyncer.imagePullPolicy }}
+        {{- with .Values.controller.vsphereSyncer.resources }}
+        resources:
+           {{- toYaml . | nindent 10 }}
+        {{- end }}
+        args:
+        - --kubeconfig=/kubeconfig/config/admin.svc
+        - --leader-election
+        - --leader-election-namespace=$(CSI_NAMESPACE)
+        - --leader-election-lease-duration=30s
+        - --leader-election-renew-deadline=20s
+        - --leader-election-retry-period=10s
+        - --fss-name=internal-feature-states.csi.vsphere.vmware.com
+        - --fss-namespace=$(CSI_NAMESPACE)
+        env:
+        - name: FULL_SYNC_INTERVAL_MINUTES
+          value: "30"
+        - name: VSPHERE_CSI_CONFIG
+          value: /etc/cloud/csi-vsphere.conf
+        - name: LOGGER_LEVEL
+          value: PRODUCTION
+        - name: INCLUSTER_CLIENT_QPS
+          value: "100"
+        - name: INCLUSTER_CLIENT_BURST
+          value: "100"
+        - name: CSI_NAMESPACE
+          value: {{ .Values.cluster.targetNamespace }}
+        ports:
+        - containerPort: 2113
+          name: prometheus
+          protocol: TCP
+        securityContext:
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
+        volumeMounts:
+        - mountPath: /etc/cloud
+          name: vsphere-config-volume
+          readOnly: true
+        - mountPath: /kubeconfig/config/admin.svc
+          name: kubeconfig
+          readOnly: true
+          subPath: admin.svc
+      - name: csi-provisioner
+        image: {{ .Values.controller.csiProvisioner.repository }}:{{ .Values.controller.csiProvisioner.tag }}
+        imagePullPolicy: {{ .Values.controller.csiProvisioner.imagePullPolicy }}
+        {{- with .Values.controller.csiProvisioner.resources }}
+        resources:
+           {{- toYaml . | nindent 10 }}
+        {{- end }}
+        args:
+        - --kubeconfig=/kubeconfig/config/admin.svc
+        - --timeout=300s
+        - --csi-address=$(ADDRESS)
+        - --kube-api-qps=100
+        - --kube-api-burst=100
+        - --leader-election
+        - --leader-election-namespace=$(CSI_NAMESPACE)
+        - --leader-election-lease-duration=120s
+        - --leader-election-renew-deadline=60s
+        - --leader-election-retry-period=30s
+        - --default-fstype=ext4
+        {{- if .Values.controller.topology.enabled }}
+        - "--feature-gates=Topology=true"
+        - "--strict-topology"
+        {{- end }}
+        env:
+        - name: ADDRESS
+          value: /csi/csi.sock
+        - name: CSI_NAMESPACE
+          value: {{ .Values.cluster.targetNamespace }}
+        volumeMounts:
+        - mountPath: /csi
+          name: socket-dir
+        - mountPath: /kubeconfig/config/admin.svc
+          name: kubeconfig
+          readOnly: true
+          subPath: admin.svc
+      - name: csi-snapshotter
+        image: {{ .Values.controller.csiSnapshotter.repository }}:{{ .Values.controller.csiSnapshotter.tag }}
+        imagePullPolicy: {{ .Values.controller.csiSnapshotter.imagePullPolicy }}
+        {{- with .Values.controller.csiSnapshotter.resources }}
+        resources:
+           {{- toYaml . | nindent 10 }}
+        {{- end }}
+        args:
+        - --kubeconfig=/kubeconfig/config/admin.svc
+        - --kube-api-qps=100
+        - --kube-api-burst=100
+        - --timeout=300s
+        - --csi-address=$(ADDRESS)
+        - --leader-election
+        - --leader-election-namespace=$(CSI_NAMESPACE)
+        - --leader-election-lease-duration=120s
+        - --leader-election-renew-deadline=60s
+        - --leader-election-retry-period=30s
+        env:
+        - name: ADDRESS
+          value: /csi/csi.sock
+        - name: CSI_NAMESPACE
+          value: {{ .Values.cluster.targetNamespace }}      
+        volumeMounts:
+        - mountPath: /csi
+          name: socket-dir
+        - mountPath: /kubeconfig/config/admin.svc
+          name: kubeconfig
+          readOnly: true
+          subPath: admin.svc
+      dnsPolicy: ClusterFirst
+      serviceAccountName: {{ include "cluster-name" . }}-vsphere-csi-controller
+      volumes:
+      - emptyDir: {}
+        name: socket-dir
+      - name: vsphere-config-volume
+        secret:
+          secretName: {{ include "csi-config-secret-name" . }}
+      - name: kubeconfig
+        secret:
+          secretName: {{ include "cluster-name" . }}-admin-kubeconfig
+

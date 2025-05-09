@@ -1,0 +1,15 @@
+Thank you for installing {{ .Chart.Name }} {{ .Chart.Version }}
+
+The vSphere CSI Controller "{{ .Release.Name }}" is deployed in the Management Cluster, namespace "{{ .Release.Namespace }}".
+
+To verify the CSI Controller is running in the Management Cluster, run the following command:
+
+    kubectl get pods -n {{ .Release.Namespace }}
+
+The vSphere CSI Node Driver is deployed in the Tenant Cluster, namespace "{{ .Values.cluster.targetNamespace }}".
+
+To verify the CSI driver is running in the Tenant Cluster, run the following command:
+  
+    kubectl get pods -n {{ .Values.cluster.targetNamespace }}
+
+For additional configuration or troubleshooting, refer to the README.md file included with this chart.
