@@ -15,8 +15,8 @@ The [Sveltos Controller](https://github.com/projectsveltos), installed in the Ma
 > **Note:** This chart is specifically designed for Kamaji-managed Tenant Clusters and is not compatible with regular Kubernetes clusters.
 
 ## Prerequisites
-- [Kamaji](https://kamaji.clastix.io) installed on the Management Cluster
--  installed in Agentless Mode on the Management Cluster 
+- Kamaji installed on the Management Cluster
+- Sveltos installed in Agentless Mode on the Management Cluster 
 - A Secret in the Management Cluster that contains vSphere CSI configuration and credentials
 
 
@@ -58,11 +58,8 @@ helm repo update
 helm install vsphere-csi clastix/vsphere-csi -f my-values.yaml
 ```
 
-## Configuration
-
 See the values you can override [here](./charts/vsphere-csi/README.md).
 
-## vSphere CSI with Topology
 When deploying to a vSphere environment using zoning, the topology plugin can be enabled for the CSI to make intelligent volume provisioning decisions.
 
 To enable the topology plugin, adjust the values for the chart as follows:
