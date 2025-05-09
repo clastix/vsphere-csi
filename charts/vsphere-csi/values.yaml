@@ -127,3 +127,5 @@ storageClass:
   parameters: {}
   #  storagepolicyname: DATASTORE_POLICY_NAME
 
+# -- Mock Profile CRD (only for linting purposes)
+enableMockCRD: false

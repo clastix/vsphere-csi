@@ -66,6 +66,7 @@ vSphere Container Storage Interface (CSI) for Kamaji Tenant Clusters
 | driver.registrar.resources | object | `{}` | CSI driver registrar resources |
 | driver.registrar.tag | string | `"v2.13.0"` | CSI driver registrar image tag |
 | driver.resources | object | `{}` | CSI driver resources |
+| enableMockCRD | bool | `false` | Mock Profile CRD (only for linting purposes) |
 | secret | string | `"csi-config-secret"` | The name of an existing Secret for vSphere. |
 | storageClass.allowVolumeExpansion | bool | `true` | Allow volume expansion |
 | storageClass.default | bool | `true` | Configure as the default storage class |
