@@ -23,6 +23,8 @@ vSphere Container Storage Interface (CSI) for Kamaji Tenant Clusters
 |-----|------|---------|-------------|
 | cluster.name | string | `"roma"` | Name of the Tenant Cluster |
 | cluster.targetNamespace | string | `"vmware-system-csi"` | Target namespace in the Tenant Cluster where the CSI driver will be installed |
+| controller.additionalMetadata | object | `{"annotations":{},"labels":{}}` | Additional metadata as labels and annotations |
+| controller.affinity | object | `{}` | Affinity scheduling rules |
 | controller.csiAttacher.imagePullPolicy | string | `"IfNotPresent"` | CSI Attacher image pull policy |
 | controller.csiAttacher.repository | string | `"registry.k8s.io/sig-storage/csi-attacher"` | CSI Attacher image |
 | controller.csiAttacher.resources | object | `{}` | CSI Attacher resources |
@@ -46,10 +48,12 @@ vSphere Container Storage Interface (CSI) for Kamaji Tenant Clusters
 | controller.livenessProbe.repository | string | `"registry.k8s.io/sig-storage/livenessprobe"` | CSI liveness probe image |
 | controller.livenessProbe.resources | object | `{}` | CSI liveness probe resources |
 | controller.livenessProbe.tag | string | `"v2.15.0"` | CSI liveness probe image tag |
-| controller.nodeSelector | object | `{}` | CSI Controller Node Selector |
+| controller.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | NodeSelector for scheduling |
+| controller.podAdditionalMetadata | object | `{"annotations":{},"labels":{}}` | Pods Additional metadata as labels and annotations |
 | controller.resources | object | `{}` | CSI Controller resources |
-| controller.tolerations | list | `[]` | CSI Controller Tolerations |
+| controller.tolerations | list | `[]` | Tolerations for scheduling |
 | controller.topology.enabled | bool | `false` | Enable topology feature |
+| controller.topologySpreadConstraints | list | `[]` | TopologySpreadConstraints for scheduling |
 | controller.vsphereSyncer.imagePullPolicy | string | `"IfNotPresent"` | CSI Syncer image pull policy |
 | controller.vsphereSyncer.repository | string | `"registry.k8s.io/csi-vsphere/syncer"` | CSI Syncer image |
 | controller.vsphereSyncer.resources | object | `{}` | CSI Syncer resources |

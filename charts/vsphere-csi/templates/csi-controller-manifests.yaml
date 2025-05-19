@@ -24,6 +24,13 @@ metadata:
   labels:
     component: csi-controller-manager
     cluster.x-k8s.io/cluster-name: {{ include "cluster-name" . | quote }}
+    {{- with .Values.controller.additionalMetadata.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- with .Values.controller.additionalMetadata.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   name: {{ include "cluster-name" . }}-vsphere-csi-controller
   namespace: {{ .Release.Namespace }}
 spec:
@@ -42,6 +49,13 @@ spec:
         component: csi-controller-manager
         app: {{ include "cluster-name" . }}-vsphere-csi-controller
         role: vsphere-csi
+        {{- with .Values.controller.podAdditionalMetadata.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        {{- with .Values.controller.podAdditionalMetadata.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       containers:
       - name: vsphere-csi-controller
@@ -289,6 +303,22 @@ spec:
           subPath: admin.svc
       dnsPolicy: ClusterFirst
       serviceAccountName: {{ include "cluster-name" . }}-vsphere-csi-controller
+      affinity:
+        {{- with .Values.controller.affinity }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
+      tolerations:
+        {{- with .Values.controller.tolerations }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
+      nodeSelector:
+        {{- with .Values.controller.nodeSelector }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
+      topologySpreadConstraints:
+        {{- with .Values.controller.topologySpreadConstraints }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
       volumes:
       - emptyDir: {}
         name: socket-dir

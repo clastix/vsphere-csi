@@ -76,10 +76,23 @@ controller:
   topology:
     # -- Enable topology feature
     enabled: false
-  # -- CSI Controller Node Selector
-  nodeSelector: {}
-  # -- CSI Controller Tolerations
+  # -- Additional metadata as labels and annotations
+  additionalMetadata: 
+    labels: {}
+    annotations: {}
+  # -- Pods Additional metadata as labels and annotations
+  podAdditionalMetadata:
+    labels: {}
+    annotations: {}
+  # -- Affinity scheduling rules
+  affinity: {}
+  # -- Tolerations for scheduling
   tolerations: []
+  # -- NodeSelector for scheduling
+  nodeSelector:
+    kubernetes.io/os: linux
+  # -- TopologySpreadConstraints for scheduling
+  topologySpreadConstraints: []
 
 driver:
   image:

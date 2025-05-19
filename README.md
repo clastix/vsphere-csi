@@ -32,22 +32,21 @@ apiVersion: v1
 kind: Secret
 type: Opaque
 metadata:
-  name: vmware-system-csi
+  name: vsphere-csi-config-secret
 stringData:
   csi-vsphere.conf: |
     [Global]
-    cluster-id = "<cluster-id>"
-    user = "<username>"
-    password = "<password>"
-    port = "<port>"
-    insecure-flag = "<insecure-flag>"
-    [VirtualCenter "<host>"]
-    datacenters = "<dc-1>, <dc-2>, ..."
+    cluster-id = "cluster-namespace/cluster-name"
+    user = "administrator@vsphere.local"
+    password = "password"
+    port = 443
+    [VirtualCenter "vcenter.local"]
+    datacenters = "datacenter-name"
+    insecure-flag = false
 EOF
 ```
 
 Install the chart using Helm. You can customize the installation by providing a `my-values.yaml` file with your specific configuration.
-
 
 ```bash
 # Add repository (if published)
