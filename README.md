@@ -32,7 +32,7 @@ apiVersion: v1
 kind: Secret
 type: Opaque
 metadata:
-  name: vsphere-csi-config-secret
+  name: csi-config-secret
   namespace: cluster-namespace
 stringData:
   csi-vsphere.conf: |
