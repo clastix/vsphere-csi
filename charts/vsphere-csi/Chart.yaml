@@ -1,8 +1,8 @@
 name: vsphere-csi
-version: 0.1.1
+version: 0.1.2
 appVersion: 3.4.0
 description: vSphere Container Storage Interface (CSI) for Kamaji Tenant Clusters
-icon: https://charts.rancher.io/assets/logos/vsphere-csi.svg
+icon: https://raw.githubusercontent.com/kubernetes/cloud-provider-vsphere/master/docs/vmware_logo.png
 type: application
 apiVersion: v2
 maintainers:
