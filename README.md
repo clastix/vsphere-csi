@@ -33,6 +33,7 @@ kind: Secret
 type: Opaque
 metadata:
   name: vsphere-csi-config-secret
+  namespace: cluster-namespace
 stringData:
   csi-vsphere.conf: |
     [Global]
