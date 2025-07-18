@@ -43,7 +43,7 @@ stringData:
     port = 443
     [VirtualCenter "vcenter.local"]
     datacenters = "datacenter-name"
-    insecure-flag = false
+    insecure-flag = true # use for selfsigned certificates
 EOF
 ```
 
